@@ -1,13 +1,14 @@
 pragma solidity ^0.5.0;
 
-contract SimpleStorage {
-  uint storedData;
+contract StorageSafe {
+  mapping(address => string) hashes;
+  
 
-  function set(uint x) public {
-    storedData = x;
+  function set(string _hash) public {
+    hashes[msg.sender] = _hash;
   }
 
-  function get() public view returns (uint) {
-    return storedData;
+  function get() public view returns (string) {
+    return hashes[msg.sender];
   }
 }
