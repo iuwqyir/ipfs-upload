@@ -39,11 +39,11 @@ class App extends Component {
   runExample = async () => {
     const { accounts, contract } = this.state;
 
-    // Stores a given value, 5 by default.
-    await contract.methods.set(5).send({ from: accounts[0] });
+    // Stores a given value, "hello" by default.
+    await contract.methods.set("hello").send({ from: accounts[0] });
 
     // Get the value from the contract to prove it worked.
-    const response = await contract.methods.get().call();
+    const response = await contract.methods.get().call({ from: accounts[0] });
 
     // Update state with the result.
     this.setState({ storageValue: response });
@@ -60,7 +60,7 @@ class App extends Component {
         <h2>Smart Contract Example</h2>
         <p>
           If your contracts compiled and migrated successfully, below will show
-          a stored value of 5 (by default).
+          a stored value of "hello" (by default).
         </p>
         <p>
           Try changing the value stored on <strong>line 40</strong> of App.js.
