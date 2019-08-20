@@ -6,7 +6,7 @@ import ipfs from './ipfs';
 import "./App.css";
 
 class App extends Component {
-  state = { storageValue: 0, web3: null, accounts: null, contract: null, buffer: null, ipfsHash: '' };
+  state = { account: null, contract: null, buffer: null, ipfsHash: '', loading: true };
 
   constructor(props) {
     super(props);
@@ -18,10 +18,9 @@ class App extends Component {
     try {
       // Get network provider and web3 instance.
       const web3 = await getWeb3();
-
       // Use web3 to get the user's accounts.
       const accounts = await web3.eth.getAccounts();
-
+      const account = accounts[0];
       // Get the contract instance.
       const networkId = await web3.eth.net.getId();
       const deployedNetwork = SimpleStorageContract.networks[networkId];
@@ -30,29 +29,23 @@ class App extends Component {
         deployedNetwork && deployedNetwork.address,
       );
 
-      // Set web3, accounts, and contract to the state, and then proceed with an
-      // example of interacting with the contract's methods.
-      this.setState({ web3, accounts, contract: instance }, this.runExample);
+      // Set account and contract to the state, set loading to false and then fetch the image hash
+      this.setState({ account, contract: instance, loading: false }, this.fetchIpfsHash);
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
-        `Failed to load web3, accounts, or contract. Check console for details.`,
+        `Failed to load account or contract. Check console for details.`,
       );
       console.error(error);
     }
   };
 
-  runExample = async () => {
-    /*const { accounts, contract } = this.state;
-
-    // Stores a given value, "hello" by default.
-    await contract.methods.set("hello").send({ from: accounts[0] });
-
-    // Get the value from the contract to prove it worked.
-    const response = await contract.methods.get().call({ from: accounts[0] });
-
+  async fetchIpfsHash() {
+    const contract = this.state.contract;
+    // Get the value from the contract
+    const response = await contract.methods.get().call({ from: this.state.account });
     // Update state with the result.
-    this.setState({ storageValue: response });*/
+    this.setState({ ipfsHash: response });
   };
 
   captureFile(event) {
@@ -66,25 +59,33 @@ class App extends Component {
 
   onSubmit(event) {
     event.preventDefault();
+    this.setState({ loading: true });
     ipfs.add(this.state.buffer, (error, result) => {
       if (error) {
         console.error(error);
         return;
       }
       this.setState({ ipfsHash: result[0].hash });
-      console.log(this.state.ipfsHash);
+      this.state.contract.methods.set(result[0].hash).send(
+        { from: this.state.account }, () => {
+          this.setState({ loading: false });
+        }
+      );
     });
   }
 
   render() {
-    if (!this.state.web3) {
+    if (this.state.loading) {
       return <div>Loading...</div>;
     }
     return (
       <div className="App">
         <h1>Your Image</h1>
         <p>This image is stored on IPFS and the Ethereum Blockchain</p>
-        <img src={`https://ipfs.io/ipfs/${this.state.ipfsHash}`} alt=""/>
+        { this.state.ipfsHash
+          ? <img src={`https://ipfs.io/ipfs/${this.state.ipfsHash}`} alt=""/>
+          : ''
+        }
         <h2>Upload Image</h2>
         <form onSubmit={this.onSubmit}>
           <input type="file" onChange={this.captureFile} />
