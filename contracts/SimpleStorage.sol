@@ -4,11 +4,11 @@ contract StorageSafe {
   mapping(address => string) hashes;
   
 
-  function set(string _hash) public {
+  function set(string memory _hash) public {
     hashes[msg.sender] = _hash;
   }
 
-  function get() public view returns (string) {
+  function get() public view returns (string memory) {
     return hashes[msg.sender];
   }
 }
