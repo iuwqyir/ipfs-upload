@@ -3,17 +3,23 @@ import MemorySaver from "./contracts/MemorySaver.json";
 import getWeb3 from "./utils/getWeb3";
 import ipfs from './ipfs';
 import Navbar from './components/Navbar';
-import SubmitForm from './components/SubmitForm';
-import Posts from './components/Posts';
+import Form from './components/Form';
+import MemoryRow from './components/MemoryRow';
+import Memory from './components/Memory';
 import "./App.css";
 
 class App extends Component {
-  state = { account: null, contract: null, buffer: null, ipfsHash: '', loading: true };
 
   constructor(props) {
     super(props);
-    this.captureFile = this.captureFile.bind(this);
-    this.onSubmit = this.onSubmit.bind(this);
+    this.state = {
+      account: null, 
+      contract: null, 
+      memories: [], 
+      memoryCount: 0, 
+      loading: true
+    };
+    this.saveMemory = this.saveMemory.bind(this);
   }
 
   componentDidMount = async () => {
@@ -30,9 +36,7 @@ class App extends Component {
         MemorySaver.abi,
         deployedNetwork && deployedNetwork.address,
       );
-
-      // Set account and contract to the state, set loading to false and then fetch the image hash
-      this.setState({ account, contract: instance, loading: false }, this.fetchIpfsHash);
+      this.setState({ account, contract: instance}, this.fetchMemories);
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -42,37 +46,37 @@ class App extends Component {
     }
   };
 
-  async fetchIpfsHash() {
-    const contract = this.state.contract;
-    // Get the value from the contract
-    const response = await contract.methods.get().call({ from: this.state.account });
-    // Update state with the result.
-    this.setState({ ipfsHash: response });
+  async fetchMemories() {
+    this.setState({ loading: true });
+    const memoryCount = await this.state.contract.methods.getMemoryCount().call({ from: this.state.account });
+    let memoryRows = [];
+    let memories = [];
+    for (var i = 0; i < memoryCount; i++) {
+      const mem = await this.state.contract.methods.getMemory(i).call({ from: this.state.account });
+      memories.push(<Memory key={i} title={mem[0]} content={mem[1]} ipfsHash={mem[2]} date={mem[3]}/>);
+      if (i % 3 === 2) {
+        memoryRows.push(<MemoryRow memories={memories} key={i}/>);
+        memories = [];
+      }
+    }
+    if (memories.length > 0) {
+      memoryRows.push(<MemoryRow key={i} memories={memories} />)
+    }
+    this.setState({ memories: memoryRows, memoryCount, loading: false });
   };
 
-  captureFile(event) {
-    const file = event.target.files[0];
-    const reader = new window.FileReader();
-    reader.readAsArrayBuffer(file);
-    reader.onloadend = () => {
-      this.setState({ buffer: Buffer.from(reader.result) });
-    };
-  }
-
-  onSubmit(event) {
-    event.preventDefault();
+  saveMemory(title, content, buffer) {
     this.setState({ loading: true });
-    ipfs.add(this.state.buffer, (error, result) => {
+    ipfs.add(buffer, (error, result) => {
       if (error) {
         console.error(error);
         return;
       }
-      this.setState({ ipfsHash: result[0].hash });
-      this.state.contract.methods.set(result[0].hash).send(
-        { from: this.state.account }, () => {
+      this.state.contract.methods.save(title, content, result[0].hash)
+        .send({ from: this.state.account }, () => {
+          this.fetchMemories();
           this.setState({ loading: false });
-        }
-      );
+        });
     });
   }
 
@@ -83,8 +87,14 @@ class App extends Component {
     return (
       <div className="App">
         <Navbar account={this.state.account} />
-        <SubmitForm />
-        <Posts ipfsHash={this.state.ipfsHash}/>
+        <Form saveMemory={this.saveMemory} />
+        <hr/>
+        <h2 className="mt-3">Your Saved Memories</h2>
+        <p>The images are stored on IPFS and your memories on the Ethereum Blockchain. How cool is that?</p>
+        <h5>You currently have <span className="badge badge-warning">{this.state.memoryCount}</span> memories saved!</h5>
+        <div className="container mt-5">
+          {this.state.memories}
+        </div>
       </div>
     );
   }
