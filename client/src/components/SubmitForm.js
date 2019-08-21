@@ -12,7 +12,8 @@ class SubmitForm extends Component {
               className="form-control" 
               name="title" 
               id="newPostTitle" 
-              placeholder="Post Title"/>
+              placeholder="Post Title" 
+              required/>
           </div>
           <div className="form-group form-group-sm">
             <textarea 
@@ -20,7 +21,9 @@ class SubmitForm extends Component {
               name="content" 
               id="newPostContent" 
               rows="3" 
-              placeholder="No more than 140 characters...">
+              placeholder="No more than 140 characters..." 
+              maxLength="140"
+              required>
             </textarea>
           </div>
           <div className="custom-file">
@@ -28,6 +31,7 @@ class SubmitForm extends Component {
               type="file" 
               className="custom-file-input input-sm" 
               id="newPostImage"
+              required
               onChange={this.captureFile} />
             <label className="custom-file-label" htmlFor="newPostImage">Choose File</label>
           </div>
