@@ -2,6 +2,7 @@ import React, { Component } from "react";
 import SimpleStorageContract from "./contracts/SimpleStorage.json";
 import getWeb3 from "./utils/getWeb3";
 import ipfs from './ipfs';
+import Navbar from './Navbar';
 
 import "./App.css";
 
@@ -80,6 +81,7 @@ class App extends Component {
     }
     return (
       <div className="App">
+        <Navbar account={this.state.account} />
         <h1>Your Image</h1>
         <p>This image is stored on IPFS and the Ethereum Blockchain</p>
         { this.state.ipfsHash
