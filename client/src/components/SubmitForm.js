@@ -3,8 +3,8 @@ import React, { Component } from "react";
 class SubmitForm extends Component {
   render() {
     return (
-      <div className="submit-form text-center col-4 offset-4 mt-3 mb-3">
-        <h2>Upload A Post</h2>
+      <div className="submit-form text-center col-4 offset-4 my-3">
+        <h2>Save A Memory</h2>
         <form className="form-horizontal justify-content-center" onSubmit={this.onSubmit}>
           <div className="form-group form-group-sm">
             <input 
