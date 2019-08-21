@@ -2,8 +2,8 @@ import React, { Component } from "react";
 import SimpleStorageContract from "./contracts/SimpleStorage.json";
 import getWeb3 from "./utils/getWeb3";
 import ipfs from './ipfs';
-import Navbar from './Navbar';
-
+import Navbar from './components/Navbar';
+import SubmitForm from './components/SubmitForm';
 import "./App.css";
 
 class App extends Component {
@@ -82,17 +82,13 @@ class App extends Component {
     return (
       <div className="App">
         <Navbar account={this.state.account} />
+        <SubmitForm />
         <h1>Your Image</h1>
         <p>This image is stored on IPFS and the Ethereum Blockchain</p>
         { this.state.ipfsHash
           ? <img src={`https://ipfs.io/ipfs/${this.state.ipfsHash}`} alt=""/>
           : ''
         }
-        <h2>Upload Image</h2>
-        <form onSubmit={this.onSubmit}>
-          <input type="file" onChange={this.captureFile} />
-          <input type="submit" />
-        </form>
       </div>
     );
   }
