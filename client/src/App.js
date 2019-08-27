@@ -32,11 +32,13 @@ class App extends Component {
       // Get the contract instance.
       const networkId = await web3.eth.net.getId();
       const deployedNetwork = MemorySaver.networks[networkId];
-      const instance = new web3.eth.Contract(
-        MemorySaver.abi,
-        deployedNetwork && deployedNetwork.address,
-      );
-      this.setState({ account, contract: instance}, this.fetchMemories);
+      if (deployedNetwork) {
+        const instance = new web3.eth.Contract(MemorySaver.abi,deployedNetwork.address);
+        this.setState({ account, contract: instance});
+        this.fetchMemories();
+      } else {
+        window.alert('Marketplace contract not deployed to detected network.');
+      }
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -73,16 +75,16 @@ class App extends Component {
         return;
       }
       this.state.contract.methods.save(title, content, result[0].hash)
-        .send({ from: this.state.account }, () => {
+        .send({ from: this.state.account })
+        .once('receipt', (receipt) => {
           this.fetchMemories();
-          this.setState({ loading: false });
         });
     });
   }
 
   render() {
     if (this.state.loading) {
-      return <div>Loading...</div>;
+      return <div>Loading... It may take a while if IPFS is slow.</div>;
     }
     return (
       <div className="App">
@@ -91,6 +93,7 @@ class App extends Component {
         <hr/>
         <h2 className="mt-3">Your Saved Memories</h2>
         <p>The images are stored on IPFS and your memories on the Ethereum Blockchain. How cool is that?</p>
+        <p><small>PS! If images are not showing up right away it is because the IPFS network is a bit slow at that moment.</small></p>
         <h5>You currently have <span className="badge badge-warning">{this.state.memoryCount}</span> memories saved!</h5>
         <div className="container mt-5">
           {this.state.memories}

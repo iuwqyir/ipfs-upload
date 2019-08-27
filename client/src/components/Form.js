@@ -30,7 +30,6 @@ class Form extends Component {
         <form className="form-horizontal justify-content-center" onSubmit={(event) => {
           event.preventDefault();
           this.props.saveMemory(this.memoryTitle.value, this.memoryContent.value, this.state.buffer);
-          //this.setState({ memoryTitle: '', memoryContent: '', fileInputLabel: '' })
         }}>
           <div className="form-group form-group-sm">
             <input 
