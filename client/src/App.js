@@ -39,6 +39,7 @@ class App extends Component {
       } else {
         window.alert('Marketplace contract not deployed to detected network.');
       }
+      this.createAccountChangeListener();
     } catch (error) {
       // Catch any errors for any of the above operations.
       alert(
@@ -47,6 +48,13 @@ class App extends Component {
       console.error(error);
     }
   };
+
+  createAccountChangeListener() {
+    window.ethereum.on('accountsChanged', (accounts) => {
+      const account = accounts[0];
+      this.setState({ account });
+    });
+  }
 
   async fetchMemories() {
     this.setState({ loading: true });
